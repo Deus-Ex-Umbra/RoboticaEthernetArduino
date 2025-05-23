@@ -33,7 +33,7 @@ Este proyecto implementa un sistema de control robótico que permite gestionar r
 | **Arduino UNO** | 1 | Microcontrolador ATmega328P |
 | **Ethernet Shield W5100** | 1 | Para conectividad de red |
 | **Módulo Relé 5V** | 1 | Para control del foco de 110V/220V |
-| **Motor Paso a Paso NENA 23** | 1 | Con driver ULN2003 |
+| **Motor Paso a Paso NENA 23** | 1 | Con driver DRV8825 |
 | **Sensor DHT11** | 1 | Sensor de temperatura y humedad |
 | **LED** | 1 | LED indicador |
 | **Resistencia 220Ω** | 1 | Para el LED |
