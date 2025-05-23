@@ -60,7 +60,7 @@ Este proyecto implementa un sistema de control robótico que permite gestionar r
 - **Relé y Foco**: El relé controla directamente un foco conectado a un enchufe de 110V/220V
 - **Tierra Común**: Conectar GND de la fuente externa con GND del Arduino
 
-![Texto alternativo](imagenes/Proyecto.jpeg)
+![Texto alternativo](images/Proyecto.jpeg)
 
 ## 🌐 Interfaz Web (Examen.html)
 
