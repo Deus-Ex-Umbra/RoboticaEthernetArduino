@@ -47,8 +47,8 @@ Este proyecto implementa un sistema de control robótico que permite gestionar r
 
 | Pin Arduino | Componente | Conexión | Descripción |
 |-------------|------------|----------|-------------|
-| **Digital 2** | Driver ULN2003 | IN1 | Control motor paso a paso |
-| **Digital 4** | Driver ULN2003 | IN2 | Control motor paso a paso |
+| **Digital 2** | Driver DRV8825 | IN1 | Control motor paso a paso |
+| **Digital 4** | Driver DRV8825 | IN2 | Control motor paso a paso |
 | **Digital 5** | Módulo Relé | IN | Control del relé para el foco |
 | **Digital 7** | Sensor DHT11 | DATA | Lectura de temperatura y humedad |
 | **Digital 8** | LED | Ánodo (+) | LED indicador (con resistencia 220Ω) |
@@ -56,7 +56,7 @@ Este proyecto implementa un sistema de control robótico que permite gestionar r
 | **GND** | Varios | GND | Tierra común |
 
 ### Alimentación Externa
-- **Motor Paso a Paso**: Requiere fuente externa de 12V conectada al driver ULN2003
+- **Motor Paso a Paso**: Requiere fuente externa de 12V conectada al driver DRV8825
 - **Relé y Foco**: El relé controla directamente un foco conectado a un enchufe de 110V/220V
 - **Tierra Común**: Conectar GND de la fuente externa con GND del Arduino
 
@@ -202,7 +202,7 @@ Mueve el motor a la posición de 90 grados desde su posición actual.
    - Determina la dirección de giro (horario/antihorario) para el menor recorrido
    - Convierte grados a pasos: `pasos = (ángulo * 2048) / 360`
 6. **Secuencia de movimiento**:
-   - Arduino envía pulsos secuenciales a los pines 2, 3, 4, 5 del driver ULN2003
+   - Arduino envía pulsos secuenciales a los pines 2, 3, 4, 5 del driver DRV8825
    - Cada secuencia mueve el motor un paso (0.176°)
    - El proceso se repite hasta alcanzar la posición deseada
 7. **Actualización de posición**: Arduino actualiza la variable de posición actual
@@ -269,7 +269,7 @@ Paso 4: IN1=LOW,  IN2=LOW,  IN3=LOW,  IN4=HIGH
 
 ## 🔧 Especificaciones Técnicas
 
-### Motor Paso a Paso 28BYJ-48
+### Motor Paso a Paso NENA 23
 - **Pasos por revolución**: 2048 (con reductor interno)
 - **Ángulo por paso**: 0.176°
 - **Alimentación**: 5V DC (fuente externa)
