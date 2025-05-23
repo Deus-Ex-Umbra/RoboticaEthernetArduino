@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control Robótica</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 10px;
+        padding: 10px;
+        background: #f0f0f0;
+        color: #333;
+      }
+      .contenedor {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 1200px;
+        margin: auto;
+        gap: 10px;
+      }
+      .columna {
+        flex: 1;
+        min-width: 300px;
+        margin: 5px;
+        padding: 15px;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        font-size: 1.8em;
+        color: #2c3e50;
+      }
+      h2 {
+        font-size: 1.3em;
+        color: #34495e;
+        margin-bottom: 10px;
+      }
+      .boton_interruptor {
+        padding: 8px 15px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.3s, transform 0.1s;
+      }
+      .boton_interruptor.encendido {
+        background: #28a745;
+      }
+      .boton_interruptor.apagado {
+        background: #dc3545;
+      }
+      .boton_interruptor:hover {
+        transform: scale(1.05);
+        filter: brightness(1.1);
+      }
+      .boton_mover {
+        padding: 8px 15px;
+        margin: 5px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .boton_mover:hover {
+        background: #0056b3;
+      }
+      input[type="number"] {
+        padding: 8px;
+        width: 80px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-right: 10px;
+      }
+      .datos_sensor {
+        font-size: 1em;
+        margin: 10px 0;
+      }
+      .error_mensaje {
+        color: #dc3545;
+        font-size: 0.9em;
+        margin: 10px 0;
+        display: none;
+      }
+      .reloj_motor {
+        display: block;
+        margin: 20px auto;
+      }
+      @media (max-width: 600px) {
+        .columna {
+          min-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Control Robótica</h1>
+    <div class="contenedor">
+      <div class="columna">
+        <h2>Controles</h2>
+        <button
+          id="interruptor1"
+          class="boton_interruptor apagado"
+          onclick="alternarInterruptor('interruptor1')"
+        >
+          Interruptor 1 (Relé)
+        </button>
+        <button
+          id="interruptor2"
+          class="boton_interruptor apagado"
+          onclick="alternarInterruptor('interruptor2')"
+        >
+          Interruptor 2 (LED)
+        </button>
+        <button
+          id="interruptor3"
+          class="boton_interruptor apagado"
+          onclick="alternarInterruptor('interruptor3')"
+        >
+          Interruptor 3 (Ambos)
+        </button>
+        <p id="error_interruptores" class="error_mensaje"></p>
+      </div>
+      <div class="columna">
+        <h2>Sensor</h2>
+        <div class="datos_sensor">
+          <p>Temperatura: <span id="temperatura">--</span> °C</p>
+          <p>Humedad: <span id="humedad">--</span> %</p>
+        </div>
+        <p id="error_sensor" class="error_mensaje"></p>
+      </div>
+      <div class="columna">
+        <h2>Motor</h2>
+        <input
+          type="number"
+          id="angulo"
+          min="0"
+          max="360"
+          placeholder="0-360"
+        />
+        <button class="boton_mover" onclick="moverMotor()">Mover</button>
+        <p>Posición: <span id="angulo_actual">0</span>°</p>
+        <canvas
+          id="reloj_motor"
+          class="reloj_motor"
+          width="200"
+          height="200"
+        ></canvas>
+        <p id="error_motor" class="error_mensaje"></p>
+      </div>
+    </div>
+    <script>
+      const IP_ARDUINO = "http://192.168.199.35";
+      let estado_interruptor1 = false;
+      let estado_interruptor2 = false;
+
+      function alternarInterruptor(id) {
+        const endpoint = id === "interruptor3" ? id : id;
+        fetch(`${IP_ARDUINO}/${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        })
+          .then((respuesta) => respuesta.json())
+          .then((datos) => {
+            if (datos.exito) {
+              if (id === "interruptor1") {
+                estado_interruptor1 = datos.estado_rele;
+                actualizarEstadoBoton("interruptor1", datos.estado_rele);
+              } else if (id === "interruptor2") {
+                estado_interruptor2 = datos.estado_led;
+                actualizarEstadoBoton("interruptor2", datos.estado_led);
+              } else if (id === "interruptor3") {
+                estado_interruptor1 = datos.estado_rele;
+                estado_interruptor2 = datos.estado_led;
+                actualizarEstadoBoton("interruptor1", datos.estado_rele);
+                actualizarEstadoBoton("interruptor2", datos.estado_led);
+                actualizarEstadoBoton(
+                  "interruptor3",
+                  datos.estado_rele || datos.estado_led
+                );
+              }
+              document.getElementById("error_interruptores").style.display =
+                "none";
+            } else {
+              mostrarError(
+                "error_interruptores",
+                datos.mensaje || "Error en la solicitud"
+              );
+            }
+          })
+          .catch((error) =>
+            mostrarError("error_interruptores", "Error: " + error.message)
+          );
+      }
+
+      function actualizarEstadoBoton(id, estado) {
+        const boton = document.getElementById(id);
+        boton.classList.remove(estado ? "apagado" : "encendido");
+        boton.classList.add(estado ? "encendido" : "apagado");
+
+        // Cambiar Interruptor 3 a rojo cuando ambos están apagados
+        if (id === "interruptor1" || id === "interruptor2") {
+          const botonAmbos = document.getElementById("interruptor3");
+          if (!estado_interruptor1 && !estado_interruptor2) {
+            botonAmbos.classList.remove("encendido");
+            botonAmbos.classList.add("apagado");
+          }
+        }
+      }
+
+      function moverMotor() {
+        const angulo = parseInt(document.getElementById("angulo").value);
+        if (isNaN(angulo) || angulo < 0 || angulo > 360) {
+          mostrarError("error_motor", "El ángulo debe ser entre 0 y 360.");
+          return;
+        }
+        fetch(`${IP_ARDUINO}/mover/${angulo}`)
+          .then((respuesta) => respuesta.json())
+          .then((datos) => {
+            if (datos.exito) {
+              document.getElementById("angulo_actual").textContent =
+                datos.angulo;
+              dibujarReloj(datos.angulo);
+              document.getElementById("error_motor").style.display = "none";
+            } else {
+              mostrarError(
+                "error_motor",
+                datos.mensaje || "Error moviendo el motor"
+              );
+            }
+          })
+          .catch((error) =>
+            mostrarError("error_motor", "Error: " + error.message)
+          );
+      }
+
+      function actualizarDatosSensor() {
+        fetch(`${IP_ARDUINO}/sensor`)
+          .then((respuesta) => respuesta.json())
+          .then((datos) => {
+            if (datos.exito) {
+              document.getElementById("temperatura").textContent =
+                datos.temperatura;
+              document.getElementById("humedad").textContent = datos.humedad;
+              document.getElementById("error_sensor").style.display = "none";
+            } else {
+              mostrarError(
+                "error_sensor",
+                datos.mensaje || "Error leyendo sensor"
+              );
+            }
+          })
+          .catch((error) =>
+            mostrarError("error_sensor", "Error: " + error.message)
+          );
+      }
+
+      function mostrarError(id, mensaje) {
+        const elemento = document.getElementById(id);
+        elemento.textContent = mensaje;
+        elemento.style.display = "block";
+      }
+
+      function dibujarReloj(angulo) {
+        const canvas = document.getElementById("reloj_motor");
+        const ctx = canvas.getContext("2d");
+        const centro_x = canvas.width / 2;
+        const centro_y = canvas.height / 2;
+        const radio = 80;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.arc(centro_x, centro_y, radio, 0, 2 * Math.PI);
+        ctx.fillStyle = "#f8f9fa";
+        ctx.fill();
+        ctx.strokeStyle = "#343a40";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        for (let i = 0; i < 12; i++) {
+          const angulo_marca = (i * 30 * Math.PI) / 180;
+          const inicio_x = centro_x + (radio - 10) * Math.sin(angulo_marca);
+          const inicio_y = centro_y - (radio - 10) * Math.cos(angulo_marca);
+          const fin_x = centro_x + radio * Math.sin(angulo_marca);
+          const fin_y = centro_y - radio * Math.cos(angulo_marca);
+          ctx.beginPath();
+          ctx.moveTo(inicio_x, inicio_y);
+          ctx.lineTo(fin_x, fin_y);
+          ctx.stroke();
+        }
+        const radianes = ((angulo - 90) * Math.PI) / 180;
+        const aguja_x = centro_x + (radio - 20) * Math.sin(radianes);
+        const aguja_y = centro_y - (radio - 20) * Math.cos(radianes);
+        ctx.beginPath();
+        ctx.moveTo(centro_x, centro_y);
+        ctx.lineTo(aguja_x, aguja_y);
+        ctx.strokeStyle = "#dc3545";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      }
+
+      setInterval(actualizarDatosSensor, 1000);
+      actualizarDatosSensor();
+      dibujarReloj(0);
+    </script>
+  </body>
+</html>
