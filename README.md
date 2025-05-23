@@ -138,6 +138,8 @@ Mueve el motor a la posición de 90 grados desde su posición actual.
 - Funciona como indicador visual del sistema
 - Control independiente desde la interfaz web
 
+<img src="images/Circuito.jpg" alt="Proyecto" width="400" height="400"/>
+
 ## 🔄 Funcionamiento Paso a Paso del Sistema
 
 ### 1. Inicialización del Sistema
